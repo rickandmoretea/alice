@@ -11,6 +11,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @final
 class APIClient:
     __slots__ = (
@@ -35,9 +36,7 @@ class APIClient:
         self.use_signature = use_signature
         self.exchange = exchange.lower()
 
-    def get(
-            self, endpoint: str, params: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+    def get(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         if params is None:
             params = {}
 
@@ -57,6 +56,7 @@ class APIClient:
             params=urlencode(params),
         )
         return self._handle_response(response)
+
     def post(self, endpoint: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
         if data is None:
             data = {}
@@ -102,25 +102,25 @@ class APIClient:
                 signature = hmac.new(
                     self.secret_key.encode("utf-8"),
                     param_str.encode("utf-8"),
-                    hashlib.sha256
+                    hashlib.sha256,
                 ).hexdigest()
 
-                headers.update({
-                    "X-BAPI-API-KEY": self.api_key,
-                    "X-BAPI-TIMESTAMP": timestamp,
-                    "X-BAPI-SIGN": signature,
-                    "X-BAPI-RECV-WINDOW": recv_window,
-                    "Content-Type": "application/json"
-                })
+                headers.update(
+                    {
+                        "X-BAPI-API-KEY": self.api_key,
+                        "X-BAPI-TIMESTAMP": timestamp,
+                        "X-BAPI-SIGN": signature,
+                        "X-BAPI-RECV-WINDOW": recv_window,
+                        "Content-Type": "application/json",
+                    }
+                )
 
                 logger.info(
                     f"[BYBIT SIGNED] param_str={param_str}, signature={signature}, payload={payload_str}"
                 )
 
                 response = requests.post(
-                    f"{self.base_url}{endpoint}",
-                    headers=headers,
-                    data=payload_str
+                    f"{self.base_url}{endpoint}", headers=headers, data=payload_str
                 )
             else:
                 response = requests.post(

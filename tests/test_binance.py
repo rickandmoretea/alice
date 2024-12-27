@@ -2,11 +2,13 @@ import pytest
 
 from src.binance import BinanceClient
 
+
 @pytest.mark.integration
 def test_binance_get_price():
     client = BinanceClient()
     price = client.get_price("BTCUSDT")
     assert price > 0, "Price should be greater than 0"
+
 
 @pytest.mark.integration
 def test_binance_place_order():

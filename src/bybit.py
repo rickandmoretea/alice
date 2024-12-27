@@ -42,9 +42,7 @@ class BybitClient:
 
         data_lst = response["result"].get("list", [])  # get the price
         if not data_lst:
-            raise APIError(
-                f"No ticker data returned. Full response: {response}"
-            )
+            raise APIError(f"No ticker data returned. Full response: {response}")
 
         last_price_str = data_lst[0].get("lastPrice")
         logger.info(f"[GET] {endpoint}, params={params}, response={response}")
@@ -64,5 +62,7 @@ class BybitClient:
         if response.get("retCode") != 0:
             raise APIError(f"Bybit private API error: {response}")
 
-        logger.info(f"Placing Bybit order: side={side}, qty={quantity}, symbol={symbol}")
+        logger.info(
+            f"Placing Bybit order: side={side}, qty={quantity}, symbol={symbol}"
+        )
         return response

@@ -2,10 +2,12 @@ import os
 from src.utils.api_client import APIClient
 from src.utils.error_handler import APIError
 from dotenv import load_dotenv
+
 load_dotenv()
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 class BinanceClient:
     def __init__(self):
@@ -47,5 +49,7 @@ class BinanceClient:
 
         if "code" in response and response["code"] != 200:
             raise APIError(f"Binance error: {response}")
-        logger.info(f"Placing Binance order: side={side}, qty={quantity}, symbol={symbol}")
+        logger.info(
+            f"Placing Binance order: side={side}, qty={quantity}, symbol={symbol}"
+        )
         return response

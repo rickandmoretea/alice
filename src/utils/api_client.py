@@ -2,12 +2,14 @@ import time
 from typing import Dict, Any, final
 import hmac
 import hashlib
+import requests
+import json
 from urllib.parse import urlencode, quote
 
-import requests
-
 from src.utils.error_handler import APIError
+from src.utils.logger import get_logger
 
+logger = get_logger(__name__)
 
 @final
 class APIClient:
@@ -27,7 +29,6 @@ class APIClient:
         use_signature: bool = False,
         exchange: str = "binance",
     ):
-
         self.base_url = base_url
         self.api_key = api_key or ""
         self.secret_key = secret_key or ""
@@ -35,7 +36,7 @@ class APIClient:
         self.exchange = exchange.lower()
 
     def get(
-        self, endpoint: str, params: Dict[str, Any] = None
+            self, endpoint: str, params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         if params is None:
             params = {}
@@ -56,86 +57,97 @@ class APIClient:
             params=urlencode(params),
         )
         return self._handle_response(response)
-
-    def post(
-        self, endpoint: str, data: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+    def post(self, endpoint: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
         if data is None:
             data = {}
 
         headers = self._get_headers()
 
+        logger.info(
+            f"[POST INIT] endpoint={endpoint}, exchange={self.exchange}, "
+            f"use_signature={self.use_signature}, data_before_sign={data}, headers={headers}"
+        )
+
         if self.use_signature:
             if self.exchange == "binance":
                 # BINANCE: form-encoded body + signature appended to the data
-                # 1) We must include "timestamp"
                 if "timestamp" not in data:
                     data["timestamp"] = int(time.time() * 1000)
-                # 2) Build query string and sign it
+
                 query_string = self._build_query_string(data)
                 signature = self._generate_signature(query_string)
                 data["signature"] = signature
 
-                # 3) We do a form-encoded POST
                 headers["Content-Type"] = "application/x-www-form-urlencoded"
-                response = requests.post(
-                    f"{self.base_url}{endpoint}",
-                    headers=headers,
-                    data=self._build_query_string(data),  # data= as a string
+                logger.info(
+                    f"[BINANCE SIGNED] query_string={query_string}, signature={signature}"
                 )
 
-            elif self.exchange == "bybit":
-                # BYBIT: JSON body + signature as a field in JSON
-                if "timestamp" not in data:
-                    data["timestamp"] = int(time.time() * 1000)
-                query_string = self._build_query_string(data)
-                signature = self._generate_signature(query_string)
-                data["signature"] = signature
-
-                headers["Content-Type"] = "application/json"
-                response = requests.post(
-                    f"{self.base_url}{endpoint}",
-                    headers=headers,
-                    json=data,  # JSON body
-                )
-            else:
-                # Default fallback
-                response = requests.post(
-                    f"{self.base_url}{endpoint}", headers=headers, json=data
-                )
-        else:
-            # Un-signed requests
-            if self.exchange == "binance":
-                # Possibly form-encoded or JSON, but typically public endpoints can handle either.
-                # We'll do form-encoded as a safe default for Binance.
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
                 response = requests.post(
                     f"{self.base_url}{endpoint}",
                     headers=headers,
                     data=self._build_query_string(data),
                 )
+
             elif self.exchange == "bybit":
-                # Bybit typically wants JSON, even for public endpoints (if they exist).
-                headers["Content-Type"] = "application/json"
+                # BYBIT actually requires payload as JSON string and signature over the string
+                recv_window = "5000"
+                timestamp = str(int(time.time() * 1000))
+
+                # Convert to JSON string
+                payload_str = json.dumps(data, separators=(",", ":"))
+                param_str = timestamp + self.api_key + recv_window + payload_str
+
+                # Generate signature
+                signature = hmac.new(
+                    self.secret_key.encode("utf-8"),
+                    param_str.encode("utf-8"),
+                    hashlib.sha256
+                ).hexdigest()
+
+                headers.update({
+                    "X-BAPI-API-KEY": self.api_key,
+                    "X-BAPI-TIMESTAMP": timestamp,
+                    "X-BAPI-SIGN": signature,
+                    "X-BAPI-RECV-WINDOW": recv_window,
+                    "Content-Type": "application/json"
+                })
+
+                logger.info(
+                    f"[BYBIT SIGNED] param_str={param_str}, signature={signature}, payload={payload_str}"
+                )
+
                 response = requests.post(
-                    f"{self.base_url}{endpoint}", headers=headers, json=data
+                    f"{self.base_url}{endpoint}",
+                    headers=headers,
+                    data=payload_str
                 )
             else:
-                # Fallback
                 response = requests.post(
                     f"{self.base_url}{endpoint}", headers=headers, json=data
                 )
+        else:
+            # Unsigned requests
+            headers["Content-Type"] = "application/json"
+            response = requests.post(
+                f"{self.base_url}{endpoint}", headers=headers, json=data
+            )
+
+        # After response
+        logger.info(
+            f"[POST RESPONSE] endpoint={endpoint}, status={response.status_code}, "
+            f"body={response.text[:500]}..."  # limit body length for readability
+        )
 
         return self._handle_response(response)
 
     def _get_headers(self):
         if self.exchange == "binance":
-            headers = {"X-MBX-APIKEY": self.api_key}
-        else:  # Assume Bybit
-            headers = {
-                "X-BAPI-API-KEY": self.api_key,
-            }
-        return headers
+            return {"X-MBX-APIKEY": self.api_key}
+        elif self.exchange == "bybit":
+            return {}
+        else:
+            raise ValueError(f"Unsupported exchange: {self.exchange}")
 
     def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
         if 200 <= response.status_code < 300:

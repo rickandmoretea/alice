@@ -3,7 +3,9 @@ import os
 from src.utils.api_client import APIClient
 from src.utils.error_handler import APIError
 from dotenv import load_dotenv
+from src.utils.logger import get_logger
 
+logger = get_logger(__name__)
 load_dotenv()
 
 
@@ -45,6 +47,7 @@ class BybitClient:
             )
 
         last_price_str = data_lst[0].get("lastPrice")
+        logger.info(f"[GET] {endpoint}, params={params}, response={response}")
         return float(last_price_str)
 
     def place_order(self, side, quantity, symbol="BTCUSDT"):
@@ -52,15 +55,14 @@ class BybitClient:
         data = {
             "category": "spot",
             "symbol": symbol,
-            # 'Buy' or 'Sell' for side
             "side": "Buy" if side.lower() == "buy" else "Sell",
             "orderType": "Market",
             "qty": str(quantity),
-            # timestamp is auto-added in APIClient if use_signature=True and exchange="bybit"
         }
 
         response = self.signed_client.post(endpoint, data=data)
         if response.get("retCode") != 0:
             raise APIError(f"Bybit private API error: {response}")
 
+        logger.info(f"Placing Bybit order: side={side}, qty={quantity}, symbol={symbol}")
         return response

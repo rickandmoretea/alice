@@ -152,7 +152,6 @@ class APIClient:
             )
 
     def _build_query_string(self, params: Dict[str, Any]) -> str:
-        """Convert dict to query string then sort it by key (s.t the signature will be consistent)"""
         return "&".join(
             f"{key}={quote(str(params[key]))}" for key in sorted(params.keys())
         )

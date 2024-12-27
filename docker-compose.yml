@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  alice:
+    build: .
+    environment:
+      BINANCE_TESTNET_API_KEY: ${BINANCE_TESTNET_API_KEY}
+      BINANCE_TESTNET_SECRET_KEY: ${BINANCE_TESTNET_SECRET_KEY}
+      BYBIT_TESTNET_API_KEY: ${BYBIT_TESTNET_API_KEY}
+      BYBIT_TESTNET_SECRET_KEY: ${BYBIT_TESTNET_SECRET_KEY}
+      TESTNET: ${TESTNET}
+    volumes:
+      - .:/app
+    command: pytest --maxfail=2 -v

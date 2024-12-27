@@ -11,7 +11,13 @@ from src.utils.error_handler import APIError
 
 @final
 class APIClient:
-    __slots__ = ("base_url", "api_key", "secret_key", "use_signature", "exchange")
+    __slots__ = (
+        "base_url",
+        "api_key",
+        "secret_key",
+        "use_signature",
+        "exchange",
+    )
 
     def __init__(
         self,
@@ -28,7 +34,9 @@ class APIClient:
         self.use_signature = use_signature
         self.exchange = exchange.lower()
 
-    def get(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+    def get(
+        self, endpoint: str, params: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         if params is None:
             params = {}
 
@@ -43,11 +51,15 @@ class APIClient:
             elif self.exchange == "bybit":
                 pass
         response = requests.get(
-            f"{self.base_url}{endpoint}", headers=headers, params=urlencode(params)
+            f"{self.base_url}{endpoint}",
+            headers=headers,
+            params=urlencode(params),
         )
         return self._handle_response(response)
 
-    def post(self, endpoint: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
+    def post(
+        self, endpoint: str, data: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
         if data is None:
             data = {}
 

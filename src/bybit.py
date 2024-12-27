@@ -40,7 +40,9 @@ class BybitClient:
 
         data_lst = response["result"].get("list", [])  # get the price
         if not data_lst:
-            raise APIError(f"No ticker data returned. Full response: {response}")
+            raise APIError(
+                f"No ticker data returned. Full response: {response}"
+            )
 
         last_price_str = data_lst[0].get("lastPrice")
         return float(last_price_str)

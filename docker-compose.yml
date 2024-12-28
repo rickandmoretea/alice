@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   alice:
     build: .
@@ -8,6 +7,7 @@ services:
       BYBIT_TESTNET_API_KEY: ${BYBIT_TESTNET_API_KEY}
       BYBIT_TESTNET_SECRET_KEY: ${BYBIT_TESTNET_SECRET_KEY}
       TESTNET: ${TESTNET}
+      PYTHONPATH: /app
     volumes:
       - .:/app
     command: pytest --maxfail=2 -v

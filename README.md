@@ -49,3 +49,29 @@ docker-compose run alice python src/demo.py
   python src/demo.py
 ```
 
+
+### Design Decision 
+1. REST vs WEBSOCKET
+- I chose RESTAPI over Websocket because it's simple for the purpose of this project.
+- Even though WebSocket are much more prefer when it comes to HFT ...
+2. Error Handling 
+- All error are logged with detailed context but can be further scale into sub level for more granular error handling
+3. Extensibility 
+- This design support add new exchanges or trading pairs with simple changes since each exchange implementation has its own interface 
+- Aggregator compares them in modular way 
+
+## Testing
+- tests can be locally or using Docker Compose
+- CI/CD Tests are run automatically on every push to the repository
+
+
+## What I would have done with more time
+- Add more test coverage 
+- Add more granular error handling
+- Integrate more exchanges
+- Use Websocket for performance and reduce overhead of RESTAPI
+- Demo are not dynamically calculate when it comes to placing order. A system would benefit from optimal quantity based on accout balances
+- Store log locally by integrating into something like Kibana 
+- This system HFT ready but can be further optimized by introducing concurrency and parallelism
+
+

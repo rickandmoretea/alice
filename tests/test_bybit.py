@@ -10,9 +10,7 @@ def test_bybit_get_price(symbol):
     assert price > 0, "Price should be greater than 0"
 
 
-@pytest.mark.skip(
-    reason="Skipping order placement test in CI"
-)  # remove this line to run the test
+@pytest.mark.skip(reason="Skipping order placement test in CI")
 def test_bybit_place_order():
     client = BybitClient()
     response = client.place_order("Buy", "10", "BTCUSDT")

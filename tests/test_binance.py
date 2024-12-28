@@ -15,5 +15,6 @@ def test_binance_get_price(symbol):
 )  # remove this line to run the test
 def test_binance_place_order():
     client = BinanceClient()
-    response = client.place_order("BUY", 100, "BTCUSDT")
+    # Sell in BTC, Buy in USDT
+    response = client.place_order("SELL", "1", "BTCUSDT")
     assert "orderId" in response, "Order ID should be present in response"

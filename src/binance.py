@@ -36,6 +36,27 @@ class BinanceClient:
         logger.info(f"[GET] {endpoint}, params={params}, response={response}")
         return float(response["price"])
 
+    def get_balance(self, assets=None):
+        """
+        Fetch balances for given asset...If no assets are specified,
+        returns balances for BTC and USDT by default.
+        """
+        endpoint = "/v3/account"
+        response = self.signed_client.get(endpoint)
+        logger.info(f"[GET] {endpoint}, response={response}")
+        if assets is None:
+            assets = ["BTC", "USDT"]
+        balances = response.get("balances", [])
+        relevant_balances = {}
+
+        for balance in balances:
+            if balance["asset"] in assets:
+                relevant_balances[balance["asset"]] = float(
+                    balance["free"]
+                )  # Only free balance
+
+        return relevant_balances
+
     def place_order(self, side, quantity, symbol="BTCUSDT"):
         endpoint = "/v3/order"
         data = {

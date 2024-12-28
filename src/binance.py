@@ -1,10 +1,10 @@
 import os
+from dotenv import load_dotenv
 from src.utils.api_client import APIClient
 from src.utils.error_handler import APIError
-from dotenv import load_dotenv
+from src.utils.logger import get_logger
 
 load_dotenv()
-from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

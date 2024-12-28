@@ -4,7 +4,7 @@ import hmac
 import hashlib
 import requests
 import json
-from urllib.parse import urlencode, quote
+from urllib.parse import quote
 
 from src.utils.error_handler import APIError
 from src.utils.logger import get_logger

@@ -15,7 +15,8 @@ def place_order_best_price(symbol="BTCUSDT", side="buy", quantity="0.5"):
         best_price = best_info["price"]
         logger.info(f"Best price is {best_price} on {best_exchange.__class__.__name__}")
 
-        # Place order note: if `buy` quantity should be USDT to spend, if `sell` quantity should be BTC to sell
+        # Place order note: if `buy` quantity should be USDT to spend,
+        # if `sell` quantity should be BTC to sell
         response = client.place_order(side, quantity, symbol)
         logger.info(f"Order placed: {response}")
     except Exception as e:

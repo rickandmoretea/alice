@@ -74,5 +74,3 @@ class BybitClient:
             f"[POST] {endpoint}, data={data}, response={response}"
         )
         return response
-
-

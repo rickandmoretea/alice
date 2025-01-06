@@ -4,6 +4,7 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 logger.setLevel("DEBUG")
 
+
 def place_order_best_price(symbol="BTCUSDT", side="buy", quantity="0.5"):
     client = AggregatorClient()
 
@@ -31,4 +32,4 @@ def buy_sold_BTCUSDT():
 
 
 if __name__ == "__main__":
-   buy_sold_BTCUSDT()
+    buy_sold_BTCUSDT()

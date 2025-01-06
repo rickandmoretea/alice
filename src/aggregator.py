@@ -5,6 +5,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class AggregatorClient:
     def __init__(self, exchanges=None):
         self.exchanges = exchanges or [BinanceClient(), BybitClient()]

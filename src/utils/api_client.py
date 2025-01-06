@@ -96,8 +96,6 @@ class APIClient:
             response = requests.post(
                 f"{self.base_url}{endpoint}", headers=headers, json=data
             )
-
-
         # Handle both raw response and parsed dictionary for logging
         if isinstance(response, requests.Response):
             logger.info(
@@ -107,7 +105,6 @@ class APIClient:
         else:
             logger.info(f"[POST RESPONSE] endpoint={endpoint}, parsed_response={response}")
             return response
-
 
     def _get_headers(self):
         """

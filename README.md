@@ -6,8 +6,19 @@ This project allow you to place market buy/sell order on Binance and Bybit testn
 The client automatically select the best price for execution
 
 ## Key Features
-- 
+- Market/Sell Orders: Automatically places buy or sell orders on the exchange with the best price.
+- Best Price Aggregator: Compares prices across Binance and Bybit 
 - Logging for actions and events taken 
+- Design Extensibility: Easily add new exchanges or trading pairs by implementing the required interfaces.
+
+## Known Limitations
+### Current Design Decisions
+1. Using Binance GET `/ticker/price` Instead of Bid/Ask Prices which simplifies development but may not reflect the true actionable price for buying or selling
+2. We could fix this to Fetch bid/ask prices (`GET /depth`) to calculate actionable prices for more accurate decision-making.
+3. The client uses REST APIs instead of WebSockets for simplicity
+4. Only supports Binance and Bybit
+5. Currently, the demo code does not dynamically calculate the optimal quantity based on account balances.
+6. The system is single-threaded and does not leverage concurrency or parallelism for fetching prices or placing orders.
 
 ## How to Run
 
@@ -50,16 +61,6 @@ docker-compose run alice python src/demo.py
 ```
 
 
-### Design Decision 
-1. REST vs WEBSOCKET
-- I chose RESTAPI over Websocket because it's simple for the purpose of this project.
-- Even though WebSocket are much more prefer when it comes to HFT ...
-2. Error Handling 
-- All error are logged with detailed context but can be further scale into sub level for more granular error handling
-3. Extensibility 
-- This design support add new exchanges or trading pairs with simple changes since each exchange implementation has its own interface 
-- Aggregator compares them in modular way 
-
 ## Testing
 - tests can be locally or using Docker Compose
 - CI/CD Tests are run automatically on every push to the repository
@@ -71,7 +72,6 @@ docker-compose run alice python src/demo.py
 - Integrate more exchanges
 - Use Websocket for performance and reduce overhead of RESTAPI
 - Demo are not dynamically calculate when it comes to placing order. A system would benefit from optimal quantity based on accout balances
-- Store log locally by integrating into something like Kibana 
+- Store log locally by integrating into something like Kibana for observability  
 - This system HFT ready but can be further optimized by introducing concurrency and parallelism
-
 

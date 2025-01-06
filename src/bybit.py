@@ -45,7 +45,11 @@ class BybitClient:
             raise APIError(f"No ticker data returned. Full response: {response}")
 
         last_price_str = data_lst[0].get("lastPrice")
-        logger.info(f"[GET] {endpoint}, params={params}, response={response}")
+        # High-level log
+        logger.info(f"[BYBIT PRICE] {symbol} -> {last_price_str}")
+        # Detailed log (DEBUG level)
+        logger.debug(f"[GET] {endpoint}, params={params}, response={response}")
+
         return float(last_price_str)
 
     def place_order(self, side, quantity, symbol="BTCUSDT"):
@@ -59,10 +63,16 @@ class BybitClient:
         }
 
         response = self.signed_client.post(endpoint, data=data)
+
         if response.get("retCode") != 0:
             raise APIError(f"Bybit private API error: {response}")
 
-        logger.info(
-            f"Placing Bybit order: side={side}, qty={quantity}, symbol={symbol}"
+        # High-level log
+        logger.info(f"[BYBIT ORDER] {side.upper()} {quantity} {symbol}")
+        # Detailed log (DEBUG level)
+        logger.debug(
+            f"[POST] {endpoint}, data={data}, response={response}"
         )
         return response
+
+

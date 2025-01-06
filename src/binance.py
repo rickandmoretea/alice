@@ -34,6 +34,8 @@ class BinanceClient:
         params = {"symbol": symbol}
         response = self.public_client.get(endpoint, params=params)
         logger.info(f"[GET] {endpoint}, params={params}, response={response}")
+        price = float(response["price"])
+        logger.info(f"[BINANCE PRICE] {symbol} -> {price}")
         return float(response["price"])
 
     def get_balance(self, assets=None):
@@ -70,7 +72,10 @@ class BinanceClient:
 
         if "code" in response and response["code"] != 200:
             raise APIError(f"Binance error: {response}")
-        logger.info(
-            f"Placing Binance order: side={side}, qty={quantity}, symbol={symbol}"
+        # High-level log
+        logger.info(f"[BINANCE ORDER] {side.upper()} {quantity} {symbol}")
+        # Detailed log (DEBUG level)
+        logger.debug(
+            f"[POST] {endpoint}, data={data}, response={response}"
         )
         return response

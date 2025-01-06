@@ -97,12 +97,17 @@ class APIClient:
                 f"{self.base_url}{endpoint}", headers=headers, json=data
             )
 
-        logger.info(
-            f"[POST RESPONSE] endpoint={endpoint}, status={response.status_code}, "
-            f"body={response.text[:500]}..."  # limit body length for readability
-        )
 
-        return self._handle_response(response)
+        # Handle both raw response and parsed dictionary for logging
+        if isinstance(response, requests.Response):
+            logger.info(
+                f"[POST RESPONSE] endpoint={endpoint}, status={response.status_code}, body={response.text[:500]}..."
+            )
+            return self._handle_response(response)
+        else:
+            logger.info(f"[POST RESPONSE] endpoint={endpoint}, parsed_response={response}")
+            return response
+
 
     def _get_headers(self):
         """
@@ -136,12 +141,7 @@ class APIClient:
         ).hexdigest()
         params["apiSignature"] = signature
 
-    def _handle_bybit_post(
-        self, endpoint: str, data: Dict[str, Any], headers: Dict[str, Any]
-    ):
-        """
-        Handle signed POST requests for Bybit.
-        """
+    def _handle_bybit_post(self, endpoint: str, data: Dict[str, Any], headers: Dict[str, Any]):
         recv_window = "5000"
         timestamp = str(int(time.time() * 1000))
         payload_str = json.dumps(data, separators=(",", ":"))
@@ -163,39 +163,36 @@ class APIClient:
         )
 
         logger.info(
-            f"[BYBIT SIGNED POST] endpoint={endpoint}, headers={headers}, payload={payload_str}"
+            f"[BYBIT POST] Endpoint: {endpoint}, Payload: {data}, Headers: {headers}"
         )
 
-        return requests.post(
+        response = requests.post(
             f"{self.base_url}{endpoint}",
             headers=headers,
             data=payload_str,
         )
+        return self._handle_response(response)
 
     def _handle_response(self, response: requests.Response) -> Dict[str, Any]:
         """
         Process the HTTP response.
         """
-        logger.info(f"Request URL: {response.request.url}")
-        logger.info(f"Request Method: {response.request.method}")
-        logger.info(f"Request Headers: {response.request.headers}")
-        logger.info(f"Response Status Code: {response.status_code}")
-        if response.request.body:
-            logger.info(f"Request Body: {response.request.body}")
-        logger.info(f"Response Text: {response.text[:500]}")
+        # Log raw response
+        logger.info(
+            f"RAW RESPONSE -> Status: {response.status_code}, "
+            f"Content: {response.text}"
+        )
 
+        try:
+            response_data = response.json()  # Parse JSON response
+        except ValueError:
+            raise APIError(f"Invalid JSON response: {response.text}")
+
+        # Check for HTTP errors
         if 200 <= response.status_code < 300:
-            try:
-                return response.json()
-            except ValueError:
-                raise APIError(
-                    "Invalid JSON response", status_code=response.status_code
-                )
+            return response_data
         else:
-            raise APIError(
-                f"API Error: {response.status_code} {response.text}",
-                status_code=response.status_code,
-            )
+            raise APIError(f"HTTP Error: {response.status_code} {response_data}")
 
     def _build_query_string(self, params: Dict[str, Any]) -> str:
         """
